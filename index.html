@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendopedia — Find Street Food Near You</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF6E3;
+    --yellow: #F5C842;
+    --yellow-dark: #E6A800;
+    --brown: #5C2E00;
+    --brown-light: #8B4513;
+    --maroon: #7A1C1C;
+    --white: #FFFFFF;
+    --card-bg: #FFFBF0;
+    --green: #2D7A3A;
+    --orange: #E8590A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--cream);
+    font-family: 'Nunito', sans-serif;
+    color: var(--brown);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === BACKGROUND BLOBS === */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: var(--yellow);
+    border-radius: 50%;
+    opacity: 0.25;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -100px; left: -60px;
+    width: 280px; height: 280px;
+    background: var(--yellow);
+    border-radius: 50%;
+    opacity: 0.2;
+    z-index: 0;
+  }
+
+  /* === HEADER === */
+  header {
+    background: var(--yellow);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 4px solid var(--brown);
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--brown);
+    letter-spacing: 1px;
+    text-shadow: 3px 3px 0px var(--maroon);
+  }
+
+  .logo span {
+    color: var(--maroon);
+  }
+
+  .header-tag {
+    background: var(--brown);
+    color: var(--yellow);
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* === HERO === */
+  .hero {
+    text-align: center;
+    padding: 40px 24px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(28px, 7vw, 48px);
+    color: var(--brown);
+    line-height: 1.1;
+    text-shadow: 3px 3px 0px rgba(92,46,0,0.15);
+  }
+
+  .hero h1 .highlight {
+    color: var(--maroon);
+    display: inline-block;
+    background: var(--yellow);
+    padding: 2px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--brown);
+    transform: rotate(-1deg);
+  }
+
+  .hero p {
+    margin-top: 12px;
+    font-size: 15px;
+    color: var(--brown-light);
+    font-weight: 600;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* === SEARCH BAR === */
+  .search-wrap {
+    max-width: 480px;
+    margin: 20px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .search-bar {
+    display: flex;
+    background: var(--white);
+    border: 3px solid var(--brown);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: 4px 4px 0px var(--brown);
+  }
+
+  .search-bar input {
+    flex: 1;
+    padding: 14px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--brown);
+    border: none;
+    outline: none;
+    background: transparent;
+  }
+
+  .search-bar input::placeholder { color: #C8A96E; font-weight: 600; }
+
+  .search-bar button {
+    background: var(--yellow);
+    border: none;
+    padding: 0 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: var(--brown);
+    cursor: pointer;
+    border-left: 3px solid var(--brown);
+    transition: background 0.2s;
+  }
+
+  .search-bar button:hover { background: var(--yellow-dark); }
+
+  /* === FILTER PILLS === */
+  .filters {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 1;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+
+  .pill {
+    flex-shrink: 0;
+    background: var(--white);
+    border: 2.5px solid var(--brown);
+    border-radius: 50px;
+    padding: 7px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--brown);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .pill:hover, .pill.active {
+    background: var(--yellow);
+    box-shadow: 3px 3px 0px var(--brown);
+    transform: translateY(-1px);
+  }
+
+  /* === SECTION TITLE === */
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: var(--brown);
+    padding: 24px 24px 0;
+    position: relative;
+    z-index: 1;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .section-title::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 4px;
+    background: var(--yellow);
+    border: 1.5px solid var(--brown);
+    border-radius: 2px;
+    margin-top: 4px;
+  }
+
+  /* === VENDOR CARDS === */
+  .cards-wrap {
+    padding: 16px 24px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 540px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .vendor-card {
+    background: var(--card-bg);
+    border: 3px solid var(--brown);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 5px 5px 0px var(--brown);
+    transition: transform 0.15s, box-shadow 0.15s;
+    animation: slideUp 0.4s ease both;
+  }
+
+  .vendor-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 5px 8px 0px var(--brown);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .vendor-card:nth-child(1) { animation-delay: 0.05s; }
+  .vendor-card:nth-child(2) { animation-delay: 0.1s; }
+  .vendor-card:nth-child(3) { animation-delay: 0.15s; }
+  .vendor-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .vendor-emoji {
+    width: 52px; height: 52px;
+    background: var(--yellow);
+    border: 2.5px solid var(--brown);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .vendor-info { flex: 1; }
+
+  .vendor-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: var(--brown);
+    line-height: 1.1;
+  }
+
+  .vendor-item {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brown-light);
+    margin-top: 3px;
+  }
+
+  .status-badge {
+    flex-shrink: 0;
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 2px solid;
+  }
+
+  .status-open {
+    background: #E8F5E9;
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .status-closed {
+    background: #FBE9E7;
+    color: var(--maroon);
+    border-color: var(--maroon);
+  }
+
+  .card-details {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brown-light);
+  }
+
+  .detail-icon {
+    width: 18px; height: 18px;
+    background: var(--yellow);
+    border: 1.5px solid var(--brown);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  .items-list {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .item-tag {
+    background: var(--yellow);
+    border: 2px solid var(--brown);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--brown);
+  }
+
+  /* === INTENT BUTTON === */
+  .intent-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px dashed var(--yellow-dark);
+  }
+
+  .intent-count {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: var(--brown-light);
+  }
+
+  .intent-count strong {
+    color: var(--maroon);
+    font-size: 18px;
+  }
+
+  .btn-coming {
+    background: var(--yellow);
+    border: 3px solid var(--brown);
+    border-radius: 50px;
+    padding: 10px 22px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: var(--brown);
+    cursor: pointer;
+    box-shadow: 3px 3px 0px var(--brown);
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-coming:hover {
+    transform: translateY(-2px);
+    box-shadow: 3px 5px 0px var(--brown);
+    background: var(--yellow-dark);
+  }
+
+  .btn-coming:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0px var(--brown);
+  }
+
+  .btn-coming.sent {
+    background: var(--green);
+    color: white;
+    border-color: #1A4D22;
+    box-shadow: 3px 3px 0px #1A4D22;
+    pointer-events: none;
+  }
+
+  /* === EMPTY STATE === */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+  }
+
+  .empty-state .big-emoji { font-size: 60px; }
+
+  .empty-state p {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: var(--brown-light);
+    margin-top: 16px;
+  }
+
+  /* === BOTTOM NAV === */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--brown);
+    border-top: 3px solid var(--yellow);
+    display: flex;
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    font-family: 'Fredoka One', cursive;
+    font-size: 11px;
+    color: rgba(245,200,66,0.6);
+    text-decoration: none;
+    transition: color 0.15s;
+    cursor: pointer;
+    gap: 3px;
+    border: none;
+    background: none;
+  }
+
+  .nav-item.active, .nav-item:hover { color: var(--yellow); }
+
+  .nav-icon { font-size: 20px; }
+
+  /* === LOADING === */
+  .loading-wrap {
+    text-align: center;
+    padding: 60px 24px;
+  }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--yellow);
+    border-top-color: var(--brown);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-wrap p {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--brown-light);
+  }
+
+  /* === TOAST === */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--brown);
+    color: var(--yellow);
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    padding: 12px 24px;
+    border-radius: 50px;
+    border: 2px solid var(--yellow);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 200;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Vendo<span>pedia</span></div>
+  <div class="header-tag">SG Palya, Bengaluru</div>
+</header>
+
+<div class="hero">
+  <h1>Street food,<br><span class="highlight">right near you</span></h1>
+  <p>See what vendors are open today and tell them you're coming 🛒</p>
+</div>
+
+<div class="search-wrap">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search vendors or items..." oninput="filterCards()">
+    <button onclick="filterCards()">Search</button>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="pill active" onclick="setFilter('all', this)">All</button>
+  <button class="pill" onclick="setFilter('open', this)">Open Now</button>
+  <button class="pill" onclick="setFilter('fruits', this)">Fruits</button>
+  <button class="pill" onclick="setFilter('snacks', this)">Snacks</button>
+  <button class="pill" onclick="setFilter('drinks', this)">Drinks</button>
+</div>
+
+<div class="section-title">Vendors near you</div>
+
+<div id="mainContent" class="cards-wrap">
+  <div class="loading-wrap">
+    <div class="spinner"></div>
+    <p>Finding vendors nearby...</p>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active">
+    <span class="nav-icon">🏠</span>
+    Home
+  </button>
+  <button class="nav-item" onclick="window.location.href='dashboard.html'">
+    <span class="nav-icon">📊</span>
+    Dashboard
+  </button>
+  <button class="nav-item" onclick="showAbout()">
+    <span class="nav-icon">ℹ️</span>
+    About
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============================================================
+  // CONFIGURATION — replace with your actual Google Sheet URL
+  // ============================================================
+  const SHEET_URL = 'https://opensheet.elk.sh/YOUR_SHEET_ID/Sheet1';
+  // To get your Sheet ID: open your Google Sheet, the URL looks like
+  // https://docs.google.com/spreadsheets/d/THIS_IS_YOUR_ID/edit
+  // Paste just the ID part above, replacing YOUR_SHEET_ID
+  // ============================================================
+
+  // Demo data — shown while you set up the real sheet
+  const DEMO_VENDORS = [
+    {
+      name: 'Anand Pineapple',
+      emoji: '🍍',
+      items: ['Fresh Pineapple', 'Spiced Pineapple', 'Pineapple Juice'],
+      location: 'Near Srinivasa Theatre gate',
+      hours: '2pm – 6pm',
+      category: 'fruits',
+      open: true,
+      whatsapp: '919999999991',
+      intent: 4
+    },
+    {
+      name: 'Kumar Chaat Corner',
+      emoji: '🥗',
+      items: ['Pani Puri', 'Bhel Puri', 'Sev Puri'],
+      location: 'Innovation Centre entrance',
+      hours: '4pm – 10pm',
+      category: 'snacks',
+      open: true,
+      whatsapp: '919999999992',
+      intent: 7
+    },
+    {
+      name: 'Raju Coconut',
+      emoji: '🥥',
+      items: ['Fresh Coconut Water', 'Coconut Pieces'],
+      location: 'SG Palya bus stop',
+      hours: '8am – 8pm',
+      category: 'drinks',
+      open: true,
+      whatsapp: '919999999993',
+      intent: 2
+    },
+    {
+      name: 'Momo Stall',
+      emoji: '🥟',
+      items: ['Veg Momos', 'Chicken Momos', 'Fried Momos'],
+      location: 'Near the parking lot',
+      hours: '6pm – 12am',
+      category: 'snacks',
+      open: false,
+      whatsapp: '919999999994',
+      intent: 0
+    }
+  ];
+
+  let allVendors = [];
+  let currentFilter = 'all';
+  let intentMap = {};
+
+  // Load intent counts from localStorage
+  function loadIntents() {
+    const saved = localStorage.getItem('vendopedia_intents');
+    if (saved) intentMap = JSON.parse(saved);
+  }
+
+  function saveIntents() {
+    localStorage.setItem('vendopedia_intents', JSON.stringify(intentMap));
+  }
+
+  // Try fetching from Google Sheet, fall back to demo data
+  async function loadVendors() {
+    loadIntents();
+    try {
+      const res = await fetch(SHEET_URL);
+      if (!res.ok) throw new Error('Sheet not configured');
+      const data = await res.json();
+      if (!data || data.length === 0) throw new Error('No data');
+      allVendors = data.map(row => ({
+        name: row['Vendor Name'] || row['name'],
+        emoji: row['Emoji'] || '🛒',
+        items: (row['Items'] || row['items'] || '').split(',').map(s => s.trim()),
+        location: row['Location'] || row['location'],
+        hours: row['Hours'] || row['hours'],
+        category: (row['Category'] || 'snacks').toLowerCase(),
+        open: (row['Open Today'] || row['open'] || '').toLowerCase() === 'yes',
+        whatsapp: row['WhatsApp'] || row['whatsapp'],
+        intent: parseInt(row['Intent'] || '0') || 0
+      }));
+    } catch(e) {
+      allVendors = DEMO_VENDORS;
+    }
+    renderCards(allVendors);
+  }
+
+  function setFilter(f, el) {
+    currentFilter = f;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    filterCards();
+  }
+
+  function filterCards() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    let filtered = allVendors.filter(v => {
+      const matchFilter = currentFilter === 'all' || 
+                          currentFilter === 'open' ? v.open : v.category === currentFilter;
+      const matchSearch = !query || 
+                          v.name.toLowerCase().includes(query) ||
+                          v.items.some(i => i.toLowerCase().includes(query));
+      return matchFilter && matchSearch;
+    });
+    renderCards(filtered);
+  }
+
+  function renderCards(vendors) {
+    const wrap = document.getElementById('mainContent');
+    if (vendors.length === 0) {
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <div class="big-emoji">🔍</div>
+          <p>No vendors found nearby right now</p>
+        </div>`;
+      return;
+    }
+
+    wrap.innerHTML = vendors.map((v, i) => {
+      const alreadySent = intentMap[v.name];
+      const count = (v.intent || 0) + (intentMap[v.name] ? 1 : 0);
+      const waMsg = encodeURIComponent(`Hi! I saw you on Vendopedia and I'm planning to visit your stall today 👋`);
+      const waLink = `https://wa.me/${v.whatsapp}?text=${waMsg}`;
+
+      return `
+      <div class="vendor-card" id="card-${i}">
+        <div class="card-top">
+          <div class="vendor-emoji">${v.emoji}</div>
+          <div class="vendor-info">
+            <div class="vendor-name">${v.name}</div>
+            <div class="vendor-item">${v.items[0]}${v.items.length > 1 ? ' + more' : ''}</div>
+          </div>
+          <div class="status-badge ${v.open ? 'status-open' : 'status-closed'}">
+            ${v.open ? '● Open' : '● Closed'}
+          </div>
+        </div>
+
+        <div class="card-details">
+          <div class="detail-item">
+            <div class="detail-icon">📍</div>
+            ${v.location}
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">🕐</div>
+            ${v.hours}
+          </div>
+        </div>
+
+        <div class="items-list">
+          ${v.items.map(item => `<span class="item-tag">${item}</span>`).join('')}
+        </div>
+
+        <div class="intent-row">
+          <div class="intent-count">
+            <strong>${count}</strong> people coming today
+          </div>
+          ${v.open
+            ? `<a href="${waLink}" class="btn-coming ${alreadySent ? 'sent' : ''}" 
+                onclick="markIntent('${v.name}', ${i})"
+                ${alreadySent ? '' : 'target="_blank"'}>
+                ${alreadySent ? '✓ Sent!' : "I'm coming →"}
+              </a>`
+            : `<span style="font-family:'Fredoka One',cursive;font-size:13px;color:var(--maroon)">Opens later</span>`
+          }
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function markIntent(vendorName, cardIdx) {
+    if (intentMap[vendorName]) return;
+    intentMap[vendorName] = Date.now();
+    saveIntents();
+    setTimeout(() => {
+      const btn = document.querySelector(`#card-${cardIdx} .btn-coming`);
+      if (btn) {
+        btn.classList.add('sent');
+        btn.textContent = '✓ Sent!';
+        btn.removeAttribute('href');
+      }
+      showToast('WhatsApp opened! Hit send to notify the vendor 🎉');
+      filterCards();
+    }, 300);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function showAbout() {
+    showToast('Vendopedia — connecting you with local street vendors 🌮');
+  }
+
+  loadVendors();
+</script>
+</body>
+</html>
